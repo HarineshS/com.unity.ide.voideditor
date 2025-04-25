@@ -1,7 +1,7 @@
 {
-  "name": "com.boxqkrtm.ide.cursor",
-  "displayName": "Cursor Editor",
-  "description": "Cursor editor integration for supporting Cursor as code editor for unity. Adds support for generating csproj files for intellisense purposes, auto discovery of installations, etc.",
+  "name": "com.harinesh.ide.void",
+  "displayName": "Void Editor by Harinesh",
+  "description": "Enhanced Void editor integration for Unity. Modified from VSCode integration to work with Void editor, a powerful fork of VSCode. This package adds support for generating csproj files, intellisense, debugging, auto-discovery of installations, and seamless Unity project integration. Original Cursor integration by boxqkrtm.",
   "version": "2.0.24",
   "unity": "2019.4",
   "unityRelease": "25f1",
@@ -9,6 +9,13 @@
     "com.unity.test-framework": "1.1.9"
   },
   "_upm": {
-    "changelog": "Integration:\n\n- Add support for Cursor"
-  }
+    "changelog": "Integration:\n\n- Add support for Void editor\n- Modified by Harinesh\n- Based on Cursor integration by boxqkrtm and original VSCode integration by Microsoft"
+  },
+  "author": {
+    "name": "Harinesh"
+  },
+  "contributors": [
+    "boxqkrtm",
+    "Microsoft"
+  ]
 }

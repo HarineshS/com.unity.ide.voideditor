@@ -125,11 +125,16 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			{
 				var workspaces = new List<string>();
 				var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				var cursorStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "cursor", "User", "workspaceStorage");
+				var voidStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "void", "User", "workspaceStorage");
+				var voidStoragePathAlt = Path.Combine(userProfile, "AppData", "Roaming", "Void", "User", "workspaceStorage");
 				
-				if (Directory.Exists(cursorStoragePath))
+				// Try both lowercase and proper case folders
+				var storagePath = Directory.Exists(voidStoragePath) ? voidStoragePath : 
+				                 (Directory.Exists(voidStoragePathAlt) ? voidStoragePathAlt : null);
+				
+				if (storagePath != null && Directory.Exists(storagePath))
 				{
-					foreach (var workspaceDir in Directory.GetDirectories(cursorStoragePath))
+					foreach (var workspaceDir in Directory.GetDirectories(storagePath))
 					{
 						try
 						{

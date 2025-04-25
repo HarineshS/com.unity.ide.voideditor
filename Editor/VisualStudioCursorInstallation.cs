@@ -56,13 +56,15 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			}
 		}
 
-		private static bool IsCandidateForDiscovery(string path) {
+private static bool IsCandidateForDiscovery(string path) {
 #if UNITY_EDITOR_OSX
-			return Directory.Exists(path) && Regex.IsMatch(path, ".*Cursor.*.app$", RegexOptions.IgnoreCase);
+			return Directory.Exists(path) && Regex.IsMatch(path, ".*Void.*.app$", RegexOptions.IgnoreCase);
 #elif UNITY_EDITOR_WIN
-			return File.Exists(path) && Regex.IsMatch(path, ".*Cursor.*.exe$", RegexOptions.IgnoreCase);
+			return File.Exists(path) && (Regex.IsMatch(path, ".*Void.*.exe$", RegexOptions.IgnoreCase) || 
+			                             path.EndsWith("Void.exe", StringComparison.OrdinalIgnoreCase));
 #else
-			return File.Exists(path) && path.EndsWith("cursor", StringComparison.OrdinalIgnoreCase);
+			return File.Exists(path) && (path.EndsWith("void", StringComparison.OrdinalIgnoreCase) ||
+			                             path.EndsWith("Void", StringComparison.OrdinalIgnoreCase));
 #endif
 		}
 
@@ -116,7 +118,7 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			isPrerelease = isPrerelease || editorPath.ToLower().Contains("insider");
 			installation = new VisualStudioCursorInstallation() {
 				IsPrerelease = isPrerelease,
-				Name = "Cursor" + (isPrerelease ? " - Insider" : string.Empty) + (version != null ? $" [{version.ToString(3)}]" : string.Empty),
+				Name = "Void" + (isPrerelease ? " - Insider" : string.Empty) + (version != null ? $" [{version.ToString(3)}]" : string.Empty),
 				Path = editorPath,
 				Version = version ?? new Version()
 			};
@@ -132,16 +134,55 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			var programFiles = IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
 
 			foreach (var basePath in new[] { localAppPath, programFiles }) {
-				candidates.Add(IOPath.Combine(basePath, "cursor", "cursor.exe"));
+				candidates.Add(IOPath.Combine(basePath, "void", "Void.exe"));
+				candidates.Add(IOPath.Combine(basePath, "Void", "Void.exe"));
+			}
+			
+			// Try to find in Program Files (x86) as well
+			var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+			if (!string.IsNullOrEmpty(programFilesX86)) {
+				candidates.Add(IOPath.Combine(programFilesX86, "void", "Void.exe"));
+				candidates.Add(IOPath.Combine(programFilesX86, "Void", "Void.exe"));
+			}
+			
+			// Add common installation locations that might not be in standard program files
+			candidates.Add(IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Local", "void", "Void.exe"));
+			candidates.Add(IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Local", "Void", "Void.exe"));
+			candidates.Add(IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Local", "Programs", "void", "Void.exe"));
+			candidates.Add(IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Local", "Programs", "Void", "Void.exe"));
+			
+			// Try direct search for Void.exe in case the executable has a different name or location
+			var appPaths = new string[] { 
+				localAppPath, 
+				programFiles, 
+				programFilesX86, 
+				IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Local")
+			};
+			
+			foreach (var basePath in appPaths) {
+				if (Directory.Exists(basePath)) {
+					try {
+						foreach (var dir in Directory.GetDirectories(basePath)) {
+							if (dir.ToLowerInvariant().Contains("void")) {
+								var exePath = IOPath.Combine(dir, "Void.exe");
+								if (File.Exists(exePath)) {
+									candidates.Add(exePath);
+								}
+							}
+						}
+					} catch (Exception) {
+						// Skip errors in directory enumeration
+					}
+				}
 			}
 #elif UNITY_EDITOR_OSX
 			var appPath = IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
-			candidates.AddRange(Directory.EnumerateDirectories(appPath, "Cursor*.app"));
+			candidates.AddRange(Directory.EnumerateDirectories(appPath, "Void*.app"));
 #elif UNITY_EDITOR_LINUX
 			// Well known locations
-			candidates.Add("/usr/bin/cursor");
-			candidates.Add("/bin/cursor");
-			candidates.Add("/usr/local/bin/cursor");
+			candidates.Add("/usr/bin/void");
+			candidates.Add("/bin/void");
+			candidates.Add("/usr/local/bin/void");
 
 			// Preference ordered base directories relative to which desktop files should be searched
 			candidates.AddRange(GetXdgCandidates());
@@ -449,9 +490,14 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			}
 		}
 
-		private Process FindRunningCursorWithSolution(string solutionPath) {
+		private Process FindRunningVoidWithSolution(string solutionPath) {
 			var directory = IOPath.GetDirectoryName(solutionPath);
-			var processes = Process.GetProcessesByName("cursor");
+			
+			// Try both lowercase and proper case since Process.GetProcessesByName is case-sensitive
+			var processes = Process.GetProcessesByName("Void");
+			if (processes == null || processes.Length == 0) {
+				processes = Process.GetProcessesByName("void");
+			}
 			
 			var normalizedTargetPath = directory.Replace('\\', '/').TrimEnd('/').ToLowerInvariant();
 			
@@ -472,7 +518,7 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 					}
 				}
 				catch (Exception ex) {
-					Debug.LogError($"[Cursor] Error checking process: {ex}");
+					Debug.LogError($"[Void] Error checking process: {ex}");
 					continue;
 				}
 			}
@@ -486,7 +532,7 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			var directory = IOPath.GetDirectoryName(solution);
 			var application = Path;
 
-			var existingProcess = FindRunningCursorWithSolution(directory);
+			var existingProcess = FindRunningVoidWithSolution(directory);
 			if (existingProcess != null) {
 				try {
 					var args = string.IsNullOrEmpty(path) ? 
@@ -497,7 +543,7 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 					return true;
 				}
 				catch (Exception ex) {
-					Debug.LogError($"[Cursor] Error using existing instance: {ex}");
+					Debug.LogError($"[Void] Error using existing instance: {ex}");
 				}
 			}
 
