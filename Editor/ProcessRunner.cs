@@ -125,9 +125,9 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			{
 				var workspaces = new List<string>();
 				var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				var cursorStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "cursor", "User", "workspaceStorage");
+				var voidStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "void", "User", "workspaceStorage");
 				
-				if (Directory.Exists(cursorStoragePath))
+				if (Directory.Exists(voidStoragePath))
 				{
 					foreach (var workspaceDir in Directory.GetDirectories(cursorStoragePath))
 					{

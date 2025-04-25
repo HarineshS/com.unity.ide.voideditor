@@ -58,11 +58,11 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 
 		private static bool IsCandidateForDiscovery(string path) {
 #if UNITY_EDITOR_OSX
-			return Directory.Exists(path) && Regex.IsMatch(path, ".*Cursor.*.app$", RegexOptions.IgnoreCase);
+			return Directory.Exists(path) && Regex.IsMatch(path, ".*Void.*.app$", RegexOptions.IgnoreCase);
 #elif UNITY_EDITOR_WIN
-			return File.Exists(path) && Regex.IsMatch(path, ".*Cursor.*.exe$", RegexOptions.IgnoreCase);
+			return File.Exists(path) && Regex.IsMatch(path, ".*Void.*.exe$", RegexOptions.IgnoreCase);
 #else
-			return File.Exists(path) && path.EndsWith("cursor", StringComparison.OrdinalIgnoreCase);
+			return File.Exists(path) && path.EndsWith("void", StringComparison.OrdinalIgnoreCase);
 #endif
 		}
 
