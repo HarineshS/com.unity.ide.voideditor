@@ -15,7 +15,7 @@ using IOPath = System.IO.Path;
 using Debug = UnityEngine.Debug;
 
 namespace Microsoft.Unity.VisualStudio.Editor {
-	internal class VisualStudioVoidInstallation : VisualStudioInstallation {
+	internal class VisualStudioCursorInstallation : VisualStudioInstallation {
 		private static readonly IGenerator _generator = new SdkStyleProjectGeneration();
 
 		public override bool SupportsAnalyzers {
@@ -114,9 +114,9 @@ namespace Microsoft.Unity.VisualStudio.Editor {
 			}
 
 			isPrerelease = isPrerelease || editorPath.ToLower().Contains("insider");
-			installation = new VisualStudioVoidInstallation() {
+			installation = new VisualStudioCursorInstallation() {
 				IsPrerelease = isPrerelease,
-				Name = "Void" + (isPrerelease ? " - Insider" : string.Empty) + (version != null ? $" [{version.ToString(3)}]" : string.Empty),
+				Name = "Cursor" + (isPrerelease ? " - Insider" : string.Empty) + (version != null ? $" [{version.ToString(3)}]" : string.Empty),
 				Path = editorPath,
 				Version = version ?? new Version()
 			};
