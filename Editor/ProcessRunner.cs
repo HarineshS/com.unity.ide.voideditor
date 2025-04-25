@@ -129,7 +129,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				
 				if (Directory.Exists(voidStoragePath))
 				{
-					foreach (var workspaceDir in Directory.GetDirectories(cursorStoragePath))
+				foreach (var workspaceDir in Directory.GetDirectories(voidStoragePath))
 					{
 						try
 						{
